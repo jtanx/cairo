@@ -925,6 +925,11 @@ _cairo_path_fixed_init_flat_copy (cairo_path_fixed_t *path,
 	const cairo_path_fixed_t *other,
 	double tolerance)
 {
+    cairo_path_fixed_append_closure_t closure;
+
+    closure.path = path;
+    closure.offset.x = 0;
+    closure.offset.y = 0;
 
     _cairo_path_fixed_init (path);
     return _cairo_path_fixed_interpret_flat (other,
@@ -932,7 +937,7 @@ _cairo_path_fixed_init_flat_copy (cairo_path_fixed_t *path,
 					      _append_move_to,
 					      _append_line_to,
 					      _append_close_path,
-					      path,
+					      &closure,
 					      tolerance);
 }
 
