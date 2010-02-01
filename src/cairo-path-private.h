@@ -54,4 +54,8 @@ cairo_private cairo_status_t
 _cairo_path_append_to_context (const cairo_path_t	*path,
 			       cairo_t			*cr);
 
+cairo_private cairo_path_t *
+_cairo_stroked_path_create (cairo_path_fixed_t *path_fixed,
+			     cairo_gstate_t     *gstate);
+
 #endif /* CAIRO_PATH_DATA_PRIVATE_H */

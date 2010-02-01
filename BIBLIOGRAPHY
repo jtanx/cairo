@@ -44,6 +44,31 @@ Now, "convolve" the "tracing" of the pen with the tracing of the path:
         24th IEEE Annual Symposium on Foundations of Computer Science
         (FOCS), November 1983, 100-111.
 
+An alternative method involves computing an 'offset path' for the
+convolution of the pen along the path.
+
+	A good introduction is given by:
+
+	"Comparing Offset Curve Approximation Methods"
+	Gershon Elber, In-Kwon Lee and Myung-Soo Kim
+        http://visualcomputing.yonsei.ac.kr/papers/1997/compare.pdf
+
+	The algorithm suggested by this paper is:
+
+	"Offsets of Two-Dimensional Profiles"
+	Wayne Tiller and Eric G. Hanson
+	IEEE Computer Graphics & Application, Vol 4. pp. 36-46
+	
+	The development of the symbolic global error
+        and iterative refinement is given by:
+
+	"Free Form Surface Analysis using a Hybrid of Symbolic and Numeric
+        Computation."
+	Gershon Elber, 1992
+	http://www.cs.utah.edu/gdc/publications/papers/elber_thesis.pdf
+
+
+
 The result of the convolution is a polygon that must be filled. A fill
 operations begins here. We use a very conventional Bentley-Ottmann
 pass for computing the intersections, informed by some hints on robust

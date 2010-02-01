@@ -1926,6 +1926,9 @@ cairo_append_path (cairo_t		*cr,
 cairo_public void
 cairo_path_destroy (cairo_path_t *path);
 
+cairo_public cairo_path_t *
+cairo_stroke_to_path (cairo_t *cr);
+
 /* Error status queries */
 
 cairo_public cairo_status_t

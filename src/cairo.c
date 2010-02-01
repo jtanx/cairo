@@ -4156,6 +4156,15 @@ cairo_append_path (cairo_t		*cr,
 	_cairo_set_error (cr, status);
 }
 
+cairo_path_t *
+cairo_stroke_to_path (cairo_t *cr)
+{
+    if (unlikely (cr->status))
+	return _cairo_path_create_in_error (cr->status);
+
+    return _cairo_stroked_path_create (cr->path, cr->gstate);
+}
+
 /**
  * cairo_status:
  * @cr: a cairo context

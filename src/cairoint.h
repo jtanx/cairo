@@ -1130,6 +1130,11 @@ cairo_private cairo_status_t
 _cairo_path_fixed_init_copy (cairo_path_fixed_t *path,
 			     const cairo_path_fixed_t *other);
 
+cairo_private cairo_status_t
+_cairo_path_fixed_init_flat_copy (cairo_path_fixed_t *path,
+				  const cairo_path_fixed_t *other,
+				  double tolerance);
+
 cairo_private cairo_bool_t
 _cairo_path_fixed_is_equal (const cairo_path_fixed_t *path,
 			    const cairo_path_fixed_t *other);
@@ -1325,6 +1330,15 @@ _cairo_path_fixed_stroke_to_traps (const cairo_path_fixed_t	*path,
 				   const cairo_matrix_t	*ctm_inverse,
 				   double		 tolerance,
 				   cairo_traps_t	*traps);
+
+/* cairo-stroke-to-path.c */
+cairo_status_t
+_cairo_path_stroke_to_path (const cairo_path_fixed_t            *path,
+			    cairo_stroke_style_t *stroke_style,
+			    cairo_path_fixed_t         *path_out,
+			    cairo_matrix_t *ctm,
+			    cairo_matrix_t *ctm_invserse,
+			    double tolerance); // XXX: the matrices could probably be const
 
 cairo_private cairo_status_t
 _cairo_path_fixed_stroke_to_shaper (cairo_path_fixed_t	*path,

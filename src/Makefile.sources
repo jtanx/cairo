@@ -159,7 +159,9 @@ cairo_sources = \
 	cairo-slope.c \
 	cairo-spans.c \
 	cairo-spline.c \
+	cairo-spline-offset.c \
 	cairo-stroke-style.c \
+	cairo-stroke-to-path.c \
 	cairo-surface.c \
 	cairo-surface-fallback.c \
 	cairo-surface-clipper.c \

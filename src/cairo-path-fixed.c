@@ -177,6 +177,7 @@ _cairo_path_fixed_init_copy (cairo_path_fixed_t *path,
     return CAIRO_STATUS_SUCCESS;
 }
 
+
 unsigned long
 _cairo_path_fixed_hash (const cairo_path_fixed_t *path)
 {
@@ -918,6 +919,23 @@ _cairo_path_fixed_append (cairo_path_fixed_t		    *path,
 					_append_close_path,
 					&closure);
 }
+
+cairo_status_t
+_cairo_path_fixed_init_flat_copy (cairo_path_fixed_t *path,
+	const cairo_path_fixed_t *other,
+	double tolerance)
+{
+
+    _cairo_path_fixed_init (path);
+    return _cairo_path_fixed_interpret_flat (other,
+	                                      CAIRO_DIRECTION_FORWARD,
+					      _append_move_to,
+					      _append_line_to,
+					      _append_close_path,
+					      path,
+					      tolerance);
+}
+
 
 static void
 _cairo_path_fixed_offset_and_scale (cairo_path_fixed_t *path,

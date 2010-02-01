@@ -369,6 +369,58 @@ _cairo_path_create_internal (cairo_path_fixed_t *path_fixed,
     return path;
 }
 
+cairo_path_t *
+_cairo_stroked_path_create (cairo_path_fixed_t *path_fixed,
+			     cairo_gstate_t     *gstate)
+{
+    cairo_path_t *path;
+
+    path = malloc (sizeof (cairo_path_t));
+    if (unlikely (path == NULL)) {
+	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
+	return (cairo_path_t*) &_cairo_path_nil;
+    }
+
+    cairo_path_fixed_t stroke_path;
+
+    _cairo_path_fixed_init (&stroke_path);
+
+    _cairo_path_stroke_to_path (path_fixed,
+	    &gstate->stroke_style,
+	    &stroke_path,
+	    &gstate->ctm,
+	    &gstate->ctm_inverse,
+	    gstate->tolerance);
+
+    path->num_data = _cairo_path_count (path, &stroke_path,
+					gstate->tolerance,
+					FALSE);
+    if (path->num_data < 0) {
+	free (path);
+	_cairo_path_fixed_fini (&stroke_path);
+	return (cairo_path_t*) &_cairo_path_nil;
+    }
+
+    if (path->num_data) {
+	path->data = _cairo_malloc_ab (path->num_data,
+				       sizeof (cairo_path_data_t));
+	if (unlikely (path->data == NULL)) {
+	    free (path);
+	    _cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
+	    return (cairo_path_t*) &_cairo_path_nil;
+	}
+
+	path->status = _cairo_path_populate (path, &stroke_path,
+					     gstate, FALSE);
+    } else {
+	path->data = NULL;
+	path->status = CAIRO_STATUS_SUCCESS;
+    }
+    _cairo_path_fixed_fini (&stroke_path);
+
+    return path;
+}
+
 /**
  * cairo_path_destroy:
  * @path: a path previously returned by either cairo_copy_path() or
