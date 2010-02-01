@@ -3650,15 +3650,22 @@ _cairo_image_surface_stroke (void			*abstract_surface,
 
     if (status == CAIRO_INT_STATUS_UNSUPPORTED) {
 	cairo_polygon_t polygon;
+	cairo_path_fixed_t stroke_path;
+
+	_cairo_path_fixed_init (&stroke_path);
+
+	status = _cairo_path_stroke_to_path (path,
+					     style,
+					     &stroke_path,
+					     ctm, ctm_inverse,
+					     tolerance);
+
+	assert (status == CAIRO_STATUS_SUCCESS);
 
 	_cairo_polygon_init (&polygon);
 	_cairo_polygon_limit (&polygon, clip_boxes, num_boxes);
 
-	status = _cairo_path_fixed_stroke_to_polygon (path,
-						      style,
-						      ctm, ctm_inverse,
-						      tolerance,
-						      &polygon);
+	status = _cairo_path_fixed_fill_to_polygon (&stroke_path, tolerance, &polygon);
 	if (likely (status == CAIRO_STATUS_SUCCESS)) {
 	    status = _clip_and_composite_polygon (surface, op, source, &polygon,
 						  CAIRO_FILL_RULE_WINDING, antialias,
@@ -3666,6 +3673,7 @@ _cairo_image_surface_stroke (void			*abstract_surface,
 	}
 
 	_cairo_polygon_fini (&polygon);
+	_cairo_path_fixed_fini (&stroke_path);
     }
 
     if (clip_boxes != boxes_stack)
