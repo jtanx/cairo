@@ -755,17 +755,6 @@ knot_offset (knots_t self, double width, cairo_bool_t *is_parallel)
     ld2 = sqrt(dx2*dx2 + dy2*dy2);
 
     /* compute normalized normals */
-    scale = 1. / ld0;
-    dlx0 = -dy0 * scale;
-    dly0 = dx0 * scale;
-
-    scale = 1. / ld1;
-    dlx1 = -dy1 * scale;
-    dly1 = dx1 * scale;
-
-    scale = 1. / ld2;
-    dlx2 = -dy2 * scale;
-    dly2 = dx2 * scale;
 
     /* deal with any degeneracies in the spline by treating
      * degenerate segments as having the same normal
@@ -776,14 +765,23 @@ knot_offset (knots_t self, double width, cairo_bool_t *is_parallel)
 
     /* first pass */
     if (ld0) {
+	scale = 1. / ld0;
+	dlx0 = -dy0 * scale;
+	dly0 = dx0 * scale;
 	last_x = dlx0;
 	last_y = dly0;
     }
     if (ld1) {
+	scale = 1. / ld1;
+	dlx1 = -dy1 * scale;
+	dly1 = dx1 * scale;
 	last_x = dlx1;
 	last_y = dly1;
     }
     if (ld2) {
+	scale = 1. / ld2;
+	dlx2 = -dy2 * scale;
+	dly2 = dx2 * scale;
 	last_x = dlx2;
 	last_y = dly2;
     }
@@ -793,6 +791,9 @@ knot_offset (knots_t self, double width, cairo_bool_t *is_parallel)
 	dlx2 = last_x;
 	dly2 = last_y;
     } else {
+	scale = 1. / ld2;
+	dlx2 = -dy2 * scale;
+	dly2 = dx2 * scale;
 	last_x = dlx2;
 	last_y = dly2;
     }
@@ -800,6 +801,9 @@ knot_offset (knots_t self, double width, cairo_bool_t *is_parallel)
 	dlx1 = last_x;
 	dly1 = last_y;
     } else {
+	scale = 1. / ld1;
+	dlx1 = -dy1 * scale;
+	dly1 = dx1 * scale;
 	last_x = dlx1;
 	last_y = dly1;
     }
@@ -807,6 +811,9 @@ knot_offset (knots_t self, double width, cairo_bool_t *is_parallel)
 	dlx0 = last_x;
 	dly0 = last_y;
     } else {
+	scale = 1. / ld0;
+	dlx0 = -dy0 * scale;
+	dly0 = dx0 * scale;
 	last_x = dlx0;
 	last_y = dly0;
     }
