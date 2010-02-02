@@ -287,6 +287,12 @@ inflection_points (knots_t s)
         dx/dt * d2y/dt2 - d2x/dt2 * dy/dt
         == 6*(a.y*b.x - a.x*b.y)*t^2 +6*(a.y*c.x-a.x*c.y)*t + 2*(b.y*c.x - b.x*c.y)
     */
+
+    if ((a.y*b.x - a.x*b.y) == 0.0) {
+	ret.t1 = ret.t2 = 1.0;
+	return ret;
+    }
+
     double t_cusp = (-1./2)*((a.y*c.x - a.x*c.y)/(a.y*b.x - a.x*b.y));
     double t_inner = (t_cusp*t_cusp - ((b.y*c.x - b.x*c.y)/(a.y*b.x - a.x*b.y))/3);
 
