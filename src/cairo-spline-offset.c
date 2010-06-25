@@ -152,6 +152,18 @@ ensure_finite (knots_t k)
     }
 }
 
+static int
+degenerate_knots (knots_t k)
+{
+
+    return k.a.x == k.b.x &&
+	k.a.y == k.b.y &&
+	k.a.x == k.c.x &&
+	k.a.y == k.c.y &&
+	k.a.x == k.d.x &&
+	k.a.y == k.d.y;
+}
+
 #if 0
 static void ensure_smoothness (knots_t a, knots_t b)
 {
@@ -701,7 +713,8 @@ approximate_offset_curve_with_shin (knots_t self, double dist, void (*curve_fn)(
 	    _de_casteljau_t (&self, &remaining, t_inflect.t1);
 
 	    /* approximate */
-	    curve_fn(closure, convolve_with_circle(self, dist));
+	    if (!degenerate_knots (self))
+		curve_fn(closure, convolve_with_circle(self, dist));
 
 	    /* reparamaterize the second inflection point over the 'remaining' spline:
 	     * (domain between inflection points)/(domain of remaining) */
@@ -714,11 +727,13 @@ approximate_offset_curve_with_shin (knots_t self, double dist, void (*curve_fn)(
 	    /* split into one segment */
 	    knots_t self = remaining;
 	    _de_casteljau_t (&self, &remaining, adjusted_inflect);
-	    curve_fn(closure, convolve_with_circle(self, dist));
+	    if (!degenerate_knots (self))
+		curve_fn(closure, convolve_with_circle(self, dist));
     }
 
     /* deal with what's left of the spline */
-    curve_fn(closure, convolve_with_circle(remaining, dist));
+    if (!degenerate_knots (remaining))
+	curve_fn(closure, convolve_with_circle(remaining, dist));
 }
 
 /* Computes the offset polygon for the control polygon of spline. We can
