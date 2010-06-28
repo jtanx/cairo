@@ -90,151 +90,6 @@ static void close_path (path_output_t *path)
 	_cairo_path_fixed_new_sub_path (path->path);
 }
 
-typedef point_t vector_t;
-
-static inline double
-dot (vector_t a, vector_t b)
-{
-    return a.x * b.x + a.y * b.y;
-}
-
-static cairo_bool_t
-point_eq (point_t a, point_t b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-
-static inline vector_t
-perp (vector_t v)
-{
-    vector_t p = {-v.y, v.x};
-    return p;
-}
-
-static inline vector_t
-flip (vector_t a)
-{
-    vector_t ar;
-    ar.x = -a.x;
-    ar.y = -a.y;
-    return ar;
-}
-
-/* given a normal rotate the vector 90 degrees to the right clockwise
- * This function has a period of 4. e.g. swap(swap(swap(swap(x) == x */
-static vector_t
-swap (vector_t a)
-{
-    vector_t ar;
-    /* one of these needs to be negative. We choose a.x so that we rotate to the right instead of negating */
-    ar.x = a.y;
-    ar.y = -a.x;
-    return ar;
-}
-
-static vector_t
-unperp (vector_t a)
-{
-    return swap (a);
-}
-
-/* Compute a spline approximation of the arc
-   centered at xc, yc from the angle a to the angle b
-
-   The angle between a and b should not be more than a
-   quarter circle (pi/2)
-
-   The approximation is similar to an approximation given in:
-   "Approximation of a cubic bezier curve by circular arcs and vice versa"
-   by Alekas Riškus. However that approximation becomes unstable when the
-   angle of the arc approaches 0.
-
-   This approximation is inspired by a discusion with Boris Zbarsky
-   and essentially just computes:
-
-     h = 4.0/3.0 * tan ((angle_B - angle_A) / 4.0);
-
-   without converting to polar coordinates.
-
-   A different way to do this is covered in "Approximation of a cubic bezier
-   curve by circular arcs and vice versa" by Alekas Riškus. However, the method
-   presented there doesn't handle arcs with angles close to 0 because it
-   divides by the perp dot product of the two angle vectors.
-   */
-
-static void
-arc_segment (path_output_t *path,
-                    double   xc,
-                    double   yc,
-                    double   radius,
-		    vector_t a,
-		    vector_t b)
-{
-    double r_sin_A, r_cos_A;
-    double r_sin_B, r_cos_B;
-    double h;
-    vector_t mid, mid2;
-    double l;
-
-    r_sin_A = radius * a.y;
-    r_cos_A = radius * a.x;
-    r_sin_B = radius * b.y;
-    r_cos_B = radius * b.x;
-
-    /* bisect the angle between 'a' and 'b' with 'mid' */
-    mid.x = a.x + b.x;
-    mid.y = a.y + b.y;
-    l = sqrt(mid.x*mid.x + mid.y*mid.y);
-    mid.x /= l;
-    mid.y /= l;
-
-    /* bisect the angle between 'a' and 'mid' with 'mid2' this is parallel to a
-     * line with angle (B - A)/4 */
-    mid2.x = a.x + mid.x;
-    mid2.y = a.y + mid.y;
-
-    h = (4./3.)*dot(perp(a), mid2)/dot(a, mid2);
-    //h = (4./3.)*(-a.y*mid.x + a.x*mid.y)/(a.x*mid2.x + a.y*mid2.y);
-
-    curve_to (path,
-                    xc + r_cos_A - h * r_sin_A,
-                    yc + r_sin_A + h * r_cos_A,
-                    xc + r_cos_B + h * r_sin_B,
-                    yc + r_sin_B - h * r_cos_B,
-                    xc + r_cos_B,
-                    yc + r_sin_B);
-}
-
-
-static vector_t
-bisect (vector_t a, vector_t b)
-{
-    vector_t mid;
-    double len;
-
-    if (dot (a, b) >= 0) {
-	/* if the angle between a and b is accute, then we can
-	 * just add the vectors and normalize */
-	mid.x = a.x + b.x;
-	mid.y = a.y + b.y;
-    } else {
-	/* otherwise, we can flip a, add it
-	 * and then use the perpendicular of the result */
-	a = flip (a);
-	mid.x = a.x + b.x;
-	mid.y = a.y + b.y;
-	mid = perp (mid);
-    }
-
-    /* normalize */
-    /* because we assume that 'a' and 'b' are normalized, we can use
-     * sqrt instead of hypot because the range of mid is limited */
-    len = sqrt (mid.x*mid.x + mid.y*mid.y);
-    mid.x /= len;
-    mid.y /= len;
-    return mid;
-}
-
 static void
 arc (path_output_t *path, double xc, double yc, double radius, vector_t a, vector_t b)
 {
@@ -351,50 +206,13 @@ compute_normal (point_t p0, point_t p1)
 
 
 
-/* computes the outgoing normal for curve given by a,b,c,d
- * returning the original normal if the curve is point */
-static vector_t
-curve_normal (vector_t original_normal, point_t a, point_t b, point_t c, point_t d)
-{
-    vector_t n = original_normal;
-    if (point_eq (c, d)) {
-	if (point_eq (b, c)) {
-	    if (!point_eq (a, b)) {
-		n = compute_normal (a, b);
-	    }
-	} else {
-	    n = compute_normal (b, c);
-	}
-    } else {
-	n = compute_normal (c, d);
-    }
-    return n;
-}
-static void ensure_finite (knots_t k)
-{
-
-    if (!(
-	    isfinite(k.a.x) &&
-	    isfinite(k.a.y) &&
-	    isfinite(k.b.x) &&
-	    isfinite(k.b.y) &&
-	    isfinite(k.c.x) &&
-	    isfinite(k.c.y) &&
-	    isfinite(k.d.x) &&
-	    isfinite(k.d.y))) {
-	print_knot(k);
-	assert(0);
-    }
-}
-
-
 static void offset_curve_to(void *closure, knots_t c)
 {
     path_output_t *path = closure;
     ensure_finite(c);
     //XXX: it would be nice if we didn't have to check this for every point
     if (!path->has_current_point)
-	line_to(path, c.a.x, c.a.y);
+	move_to(path, c.a.x, c.a.y);
     curve_to(path, c.b.x, c.b.y, c.c.x, c.c.y, c.d.x, c.d.y);
 }
 
@@ -429,6 +247,7 @@ line_intersection (point_t A, vector_t a_perp, point_t B, vector_t b_perp)
     vector_t a = unperp(a_perp);
     vector_t c = {B.x - A.x, B.y - A.y};
     denom = dot(b_perp, a);
+    /* CHECK ME!!! */
     if (denom == 0.0) {
 	assert(0 && "TROUBLE");
     }
@@ -1247,6 +1066,7 @@ dash_subpath (dash_point_t start_point, path_output_t *path_out, path_ittr *inde
 	    closed_p1 = c2p (ctm_i, i.points[0]);
 	    closed_p2 = end_point.point;
 	    closed_n1 = n1;
+	    /* CHECK ME!!! */
 	    closed_n2 = compute_normal (closed_p1, closed_p2);
 	    closed_n3 = compute_normal (closed_p2, c2p(ctm_i, ittr_next (next_i).points[0]));
 	    join_segment_line (path_out, style, closed_p1, closed_n1, closed_n2);

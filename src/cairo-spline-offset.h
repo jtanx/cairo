@@ -1,18 +1,8 @@
-typedef cairo_point_double_t point_t;
-typedef struct _knots {
-	    point_t a,b,c,d;
-} knots_t;
+#ifndef CAIRO_SPLINE_OFFSET_H
+#define CAIRO_SPLINE_OFFSET_H
 
-void print_knot(knots_t k);
+cairo_status_t
+_cairo_spline_offset (const cairo_spline_knots_double_t *k, double offset, double tolerance, cairo_status_t (*curve_fn)(void *, const cairo_spline_knots_double_t *), void *closure);
 
-struct curve_list {
-	knots_t curve;
-	double dist;
-	struct curve_list *next;
-	struct curve_list *prev;
-};
+#endif /*CAIRO_DIRECTFB_H*/
 
-typedef struct curve_list curve_list_t;
-
-void
-curve_offset(knots_t self, double offset, double tolerance, void (*curve_to_fn)(void *path, knots_t k), void *closure);
